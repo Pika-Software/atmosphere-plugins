@@ -101,6 +101,9 @@ do
 
 end
 
+-- Language Change
+hook.Add( 'LanguageChanged', Plugin.Name, discord.Update )
+
 -- Loading Info
 hook.Add( 'LoadingStarted', Plugin.Name, function()
     discord.Clear()
