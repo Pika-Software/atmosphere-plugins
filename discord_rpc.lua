@@ -10,6 +10,7 @@ atmosphere.Require( 'console' )
 atmosphere.Require( 'server' )
 atmosphere.Require( 'steam' )
 atmosphere.Require( 'utils' )
+atmosphere.Require( 'link' )
 atmosphere.Require( 'api' )
 
 local gamemode = atmosphere.gamemode
@@ -19,8 +20,14 @@ local console = atmosphere.console
 local server = atmosphere.server
 local steam = atmosphere.steam
 local logger = discord.Logger
+local link = atmosphere.link
 local api = atmosphere.api
 local hook = hook
+
+-- Client API
+link.Receive( 'discord.rpc.setRoundEndTime', discord.SetRoundEndTime )
+link.Receive( 'discord.rpc.startStopwatch', discord.StartStopwatch )
+link.Receive( 'discord.rpc.clearTime', discord.ClearTime )
 
 -- Convenient functions
 local function steamInfo()
@@ -44,7 +51,7 @@ end
 
 local function menuInfo( title, logo )
     if (title ~= discord.GetTitle()) then
-        discord.StartTimeInGame()
+        discord.StartStopwatch()
     end
 
     discord.SetupImage( title, logo )
@@ -107,7 +114,7 @@ hook.Add( 'LanguageChanged', Plugin.Name, discord.Update )
 -- Loading Info
 hook.Add( 'LoadingStarted', Plugin.Name, function()
     discord.Clear()
-    discord.StartTimeInGame()
+    discord.StartStopwatch()
     discord.SetImage( 'no_icon' )
     discord.SetImageText( 'unknown' )
     discord.SetState( 'atmosphere.connecting_to_server' )
@@ -147,8 +154,8 @@ do
 
         discord.SetState( gamemode.GetName( Either( serverInfo.Gamemode == nil, engine.ActiveGamemode(), serverInfo.Gamemode ) ) )
         discord.SetTitle( server.GetHostName() )
-        discord.StartTimeInGame()
         mapInfo( serverInfo.Map )
+        discord.StartStopwatch()
 
         local secret = { server.GetAddress() }
         if (secret[ 1 ] == 'loopback') then
