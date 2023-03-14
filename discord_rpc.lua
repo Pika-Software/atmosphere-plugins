@@ -36,7 +36,7 @@ local function steamInfo()
         steam.GetUser( steam.IDTo64( clientInfo.steamid ) ):Then( function( result )
             discord.SetupIcon( result.nickname, result.avatar )
         end, function( err )
-            logger:Warn( 'Getting steam user info failed, %s', err )
+            logger:Warn( 'Getting steam user info failed - %s', err )
         end )
     end
 end
