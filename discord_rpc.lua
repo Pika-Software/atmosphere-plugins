@@ -2,26 +2,16 @@ Plugin.Name = 'Discord RPC'
 Plugin.Author = 'Pika Software'
 Plugin.Description = 'A plugin for sending game session information to Discord.'
 
-atmosphere.Require( 'gamemode' )
-atmosphere.Require( 'discord' )
-atmosphere.Require( 'loading' )
-atmosphere.Require( 'convars' )
-atmosphere.Require( 'console' )
-atmosphere.Require( 'server' )
-atmosphere.Require( 'steam' )
-atmosphere.Require( 'utils' )
-atmosphere.Require( 'link' )
-atmosphere.Require( 'api' )
-
-local gamemode = atmosphere.gamemode
-local discord = atmosphere.discord
-local convars = atmosphere.convars
-local console = atmosphere.console
-local server = atmosphere.server
-local steam = atmosphere.steam
+-- Localization & Requires
+local gamemode = atmosphere.Require( 'gamemode' )
+local discord = atmosphere.Require( 'discord' )
+local convars = atmosphere.Require( 'convars' )
+local console = atmosphere.Require( 'console' )
+local server = atmosphere.Require( 'server' )
+local steam = atmosphere.Require( 'steam' )
+local link = atmosphere.Require( 'link' )
+local api = atmosphere.Require( 'api' )
 local logger = discord.Logger
-local link = atmosphere.link
-local api = atmosphere.api
 local hook = hook
 
 -- Client API
