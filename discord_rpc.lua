@@ -9,6 +9,7 @@ local convars = atmosphere.Require( 'convars' )
 local console = atmosphere.Require( 'console' )
 local server = atmosphere.Require( 'server' )
 local steam = atmosphere.Require( 'steam' )
+local pages = atmosphere.Require( 'pages' )
 local link = atmosphere.Require( 'link' )
 local api = atmosphere.Require( 'api' )
 local logger = discord.Logger
@@ -52,9 +53,23 @@ local function menuInfo( title, logo )
     steamInfo()
 end
 
-local function mainMenu()
-    menuInfo( 'atmosphere.mainmenu', 'clouds' )
+local function updatePageInfo( panel )
+    if not IsValid( panel ) then
+        panel = pages.Get()
+    end
+
+    if IsValid( panel ) then
+        local pageName = panel.APageName
+        if isstring( pageName ) then
+            menuInfo( pageName, 'clouds' )
+            return
+        end
+    end
+
+    menuInfo( '#atmosphere.mainmenu', 'clouds' )
 end
+
+hook.Add( 'PageChanged', Plugin.Name, updatePageInfo )
 
 -- Discord Connect Managment
 do
@@ -95,7 +110,7 @@ do
 
     hook.Add( 'DiscordLoaded', Plugin.Name, function()
         connect()
-        mainMenu()
+        updatePageInfo()
     end )
 
 end
@@ -115,7 +130,7 @@ end )
 hook.Add( 'LoadingFinished', Plugin.Name, function()
     if server.IsConnected() then return end
     discord.Clear()
-    mainMenu()
+    updatePageInfo()
 end )
 
 local loadingStatus = convars.Create( 'discord_loading_status', true, TYPE_BOOL, ' - Displays the connection process in your Discord activity.', true )
@@ -216,5 +231,5 @@ end
 
 hook.Add( 'ClientDisconnected', Plugin.Name, function()
     discord.Clear()
-    mainMenu()
+    updatePageInfo()
 end )
