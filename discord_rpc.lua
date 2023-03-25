@@ -124,7 +124,7 @@ hook.Add( 'LoadingStarted', Plugin.Name, function()
     discord.StartStopwatch()
     discord.SetImage( 'no_icon' )
     discord.SetImageText( 'unknown' )
-    discord.SetState( 'atmosphere.connecting_to_server' )
+    discord.SetState( '#atmosphere.connecting_to_server' )
 end )
 
 hook.Add( 'LoadingFinished', Plugin.Name, function()
