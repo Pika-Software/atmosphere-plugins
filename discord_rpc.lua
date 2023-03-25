@@ -149,10 +149,9 @@ hook.Add( 'ServerDetails', Plugin.Name, function( result )
     discord.SetTitle( result.Name )
 end )
 
-local serverInfo = server.ServerInfo
-
 do
 
+    local serverInfo = server.ServerInfo
     local string = string
     local util = util
 
@@ -164,7 +163,7 @@ do
         mapInfo( serverInfo.Map )
         discord.StartStopwatch()
 
-        local secret = { server.GetAddress() }
+        local secret = { server.Address }
         if (secret[ 1 ] == 'loopback') then
             local sid64 = serverInfo.SteamID64
             if not sid64 then sid64 = steam.IDTo64( steam.GetClientInfo().steamid ) end
@@ -172,7 +171,7 @@ do
             secret[ 1 ] = 'p2p:' .. sid64
             secret[ 3 ] = cvars.String( 'sv_password' )
             secret[ 2 ] = util.GetUUID()
-        elseif server.IsP2P( secret[ 1 ] ) then
+        elseif string.IsP2P( secret[ 1 ] ) then
             secret[ 2 ] = discord.GetPartyID() or util.GetUUID()
             secret[ 3 ] = cvars.String( 'password' )
         else
@@ -223,7 +222,7 @@ do
         if (nextUpdate > time) then return end
         nextUpdate = time + serverDelay:GetValue()
 
-        discord.SetPartySize( server.GetPlayerCount(), serverInfo.MaxPlayers )
+        discord.SetPartySize( server.GetPlayerCount(), server.MaxPlayers )
         discord.SetTitle( server.GetHostName() )
     end )
 
