@@ -151,21 +151,20 @@ end )
 
 do
 
-    local serverInfo = server.ServerInfo
     local string = string
     local util = util
 
     hook.Add( 'ClientConnected', Plugin.Name, function()
         steamInfo()
 
-        discord.SetState( gamemode.GetName( Either( serverInfo.Gamemode == nil, engine.ActiveGamemode(), serverInfo.Gamemode ) ) )
+        discord.SetState( gamemode.GetName( server.GetGamemode() ) )
         discord.SetTitle( server.GetHostName() )
-        mapInfo( serverInfo.Map )
+        mapInfo( server.GetMap() )
         discord.StartStopwatch()
 
-        local secret = { server.Address }
+        local secret = { server.GetAddress() }
         if (secret[ 1 ] == 'loopback') then
-            local sid64 = serverInfo.SteamID64
+            local sid64 = server.GetSteamID64()
             if not sid64 then sid64 = steam.IDTo64( steam.GetClientInfo().steamid ) end
 
             secret[ 1 ] = 'p2p:' .. sid64
@@ -222,7 +221,7 @@ do
         if (nextUpdate > time) then return end
         nextUpdate = time + serverDelay:GetValue()
 
-        discord.SetPartySize( server.GetPlayerCount(), server.MaxPlayers )
+        discord.SetPartySize( server.GetPlayerCount(), server.GetMaxPlayers() )
         discord.SetTitle( server.GetHostName() )
     end )
 
