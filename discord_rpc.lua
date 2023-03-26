@@ -6,6 +6,7 @@ Plugin.Description = 'A plugin for sending game session information to Discord.'
 local discord = atmosphere.Require( 'discord' )
 local steam = atmosphere.Require( 'steam' )
 local logger = discord.Logger
+local IsValid = IsValid
 local hook = hook
 
 -- Discord application client ID
@@ -82,7 +83,7 @@ do
         MenuInfo( '#atmosphere.mainmenu', 'clouds' )
     end
 
-    hook.Add( 'PageChanged', Plugin.Name, PageInfo )
+    hook.Add( 'PageChanged', 'atmosphere.discord.rpc', PageInfo )
 
 end
 
@@ -109,21 +110,21 @@ do
         attempts = math.Clamp( attempts + 1, 1, 15 )
     end
 
-    hook.Add( 'DiscordConnected', Plugin.Name, function()
+    hook.Add( 'DiscordConnected', 'atmosphere.discord.rpc', function()
         timer.Remove( 'atmoshere.discord.rpc.reconnect' )
         logger:Info( 'Client successfully connected!' )
     end )
 
-    hook.Add( 'DiscordDisconnected', Plugin.Name, function()
+    hook.Add( 'DiscordDisconnected', 'atmosphere.discord.rpc', function()
         timer.Create( 'atmoshere.discord.rpc.reconnect', 0.25, 1, connect )
         logger:Warn( 'Client disconnected, reconnecting...' )
     end )
 
-    hook.Add( 'DiscordReady', Plugin.Name, function()
+    hook.Add( 'DiscordReady', 'atmosphere.discord.rpc', function()
         discord.Update()
     end )
 
-    hook.Add( 'DiscordLoaded', Plugin.Name, function()
+    hook.Add( 'DiscordLoaded', 'atmosphere.discord.rpc', function()
         connect()
         PageInfo()
     end )
@@ -131,10 +132,10 @@ do
 end
 
 -- Language Change
-hook.Add( 'LanguageChanged', Plugin.Name, discord.Update )
+hook.Add( 'LanguageChanged', 'atmosphere.discord.rpc', discord.Update )
 
 -- Loading Info
-hook.Add( 'LoadingStarted', Plugin.Name, function()
+hook.Add( 'LoadingStarted', 'atmosphere.discord.rpc', function()
     discord.Clear()
     discord.StartStopwatch()
     discord.SetImage( 'no_icon' )
@@ -145,14 +146,14 @@ end )
 local convars = atmosphere.Require( 'convars' )
 local server = atmosphere.Require( 'server' )
 
-hook.Add( 'LoadingFinished', Plugin.Name, function()
+hook.Add( 'LoadingFinished', 'atmosphere.discord.rpc', function()
     if server.IsConnected() then return end
     discord.Clear()
     PageInfo()
 end )
 
 local loadingStatus = convars.Create( 'discord_loading_status', true, TYPE_BOOL, ' - Displays the connection process in your Discord activity.', true )
-hook.Add( 'LoadingStatusChanged', Plugin.Name, function( status )
+hook.Add( 'LoadingStatusChanged', 'atmosphere.discord.rpc', function( status )
     if not loadingStatus:GetValue() then return end
     if server.IsConnected() then return end
     discord.SetTitle( status )
@@ -161,7 +162,7 @@ end )
 local gamemode = atmosphere.Require( 'gamemode' )
 
 -- Game Info
-hook.Add( 'ServerDetails', Plugin.Name, function( result )
+hook.Add( 'ServerDetails', 'atmosphere.discord.rpc', function( result )
     MapInfo( result.Map )
 
     if loadingStatus:GetValue() then return end
@@ -174,7 +175,7 @@ do
     local string = string
     local util = util
 
-    hook.Add( 'ClientConnected', Plugin.Name, function()
+    hook.Add( 'ClientConnected', 'atmosphere.discord.rpc', function()
         SteamInfo()
 
         discord.SetState( gamemode.GetName( server.GetGamemode() ) )
@@ -204,7 +205,7 @@ do
 
     local console = atmosphere.Require( 'console' )
 
-    hook.Add( 'DiscordJoin', Plugin.Name, function( joinSecret )
+    hook.Add( 'DiscordJoin', 'atmosphere.discord.rpc', function( joinSecret )
         local secret = util.Base64Decode( joinSecret )
         if not secret then return end
 
@@ -236,7 +237,7 @@ do
     local CurTime = CurTime
     local nextUpdate = 0
 
-    hook.Add( 'Think', Plugin.Name, function()
+    hook.Add( 'Think', 'atmosphere.discord.rpc', function()
         if not server.IsConnected() then return end
 
         local time = CurTime()
@@ -249,7 +250,7 @@ do
 
 end
 
-hook.Add( 'ClientDisconnected', Plugin.Name, function()
+hook.Add( 'ClientDisconnected', 'atmosphere.discord.rpc', function()
     discord.Clear()
     PageInfo()
 end )
