@@ -254,3 +254,23 @@ hook.Add( 'ClientDisconnected', 'atmosphere.discord.rpc', function()
     discord.Clear()
     PageInfo()
 end )
+
+-- Discord invite notification
+do
+
+    local notifications = atmosphere.Require( 'notifications' )
+
+    hook.Add( 'DiscordInvite', 'atmosphere.discord.rpc', function( activityType, user, data )
+        if ( data.application_id ~= clientID ) then return end
+
+        local panel = notifications.Create()
+        if not IsValid( panel ) then return end
+
+        panel:SetTitle( 'You have been invited to the server.' )
+        panel:SetupAvatar( discord.GetAvatarURL( user.id, user.avatar ) )
+        panel:SetDescription( user.username .. ', invites you to join the game, you can accept it on Discord.' )
+        panel:SetAllowClose( true )
+        panel:SetLifeTime( 5 )
+    end )
+
+end
