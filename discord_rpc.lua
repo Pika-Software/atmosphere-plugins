@@ -3,25 +3,29 @@ Plugin.Author = 'Pika Software'
 Plugin.Description = 'A plugin for sending game session information to Discord.'
 
 -- Localization & Requires
-local gamemode = atmosphere.Require( 'gamemode' )
 local discord = atmosphere.Require( 'discord' )
-local convars = atmosphere.Require( 'convars' )
-local console = atmosphere.Require( 'console' )
-local server = atmosphere.Require( 'server' )
 local steam = atmosphere.Require( 'steam' )
-local pages = atmosphere.Require( 'pages' )
-local link = atmosphere.Require( 'link' )
-local api = atmosphere.Require( 'api' )
 local logger = discord.Logger
 local hook = hook
 
+-- Discord application client ID
+local clientID = '1016151516761030717'
+
 -- Client API
-link.Receive( 'discord.rpc.setRoundEndTime', discord.SetRoundEndTime )
-link.Receive( 'discord.rpc.startStopwatch', discord.StartStopwatch )
-link.Receive( 'discord.rpc.clearTime', discord.ClearTime )
+do
+
+    local link = atmosphere.Require( 'link' )
+
+    link.Receive( 'discord.rpc.setRoundEndTime', discord.SetRoundEndTime )
+    link.Receive( 'discord.rpc.startStopwatch', discord.StartStopwatch )
+    link.Receive( 'discord.rpc.clearTime', discord.ClearTime )
+
+end
+
+module( 'atmosphere.discord.rpc', package.seeall )
 
 -- Convenient functions
-local function steamInfo()
+function SteamInfo()
     local clientInfo = steam.GetClientInfo()
     if clientInfo and clientInfo.steamid then
         steam.GetUser( steam.IDTo64( clientInfo.steamid ) ):Then( function( result )
@@ -32,44 +36,55 @@ local function steamInfo()
     end
 end
 
-local function mapInfo( mapName )
-    discord.SetImageText( mapName )
+do
 
-    api.GetMapIcon( mapName ):Then( function( imageURL )
-        discord.SetImage( imageURL )
-    end, function()
-        discord.SetImage( 'no_icon' )
-    end )
+    local api = atmosphere.Require( 'api' )
+    function MapInfo( mapName )
+        discord.SetImageText( mapName )
+
+        api.GetMapIcon( mapName ):Then( function( imageURL )
+            discord.SetImage( imageURL )
+        end, function()
+            discord.SetImage( 'no_icon' )
+        end )
+    end
+
 end
 
-local function menuInfo( title, logo )
-    if (title ~= discord.GetTitle()) then
+function MenuInfo( title, logo )
+    if ( title ~= discord.GetTitle() ) then
         discord.StartStopwatch()
     end
 
     discord.SetupImage( title, logo )
     discord.SetTitle( title )
 
-    steamInfo()
+    SteamInfo()
 end
 
-local function updatePageInfo( panel )
-    if not IsValid( panel ) then
-        panel = pages.Get()
-    end
+do
 
-    if IsValid( panel ) then
-        local pageName = panel.APageName
-        if isstring( pageName ) then
-            menuInfo( pageName, 'clouds' )
-            return
+    local pages = atmosphere.Require( 'pages' )
+
+    function PageInfo( panel )
+        if not IsValid( panel ) then
+            panel = pages.Get()
         end
+
+        if IsValid( panel ) then
+            local pageName = panel.APageName
+            if isstring( pageName ) then
+                MenuInfo( pageName, 'clouds' )
+                return
+            end
+        end
+
+        MenuInfo( '#atmosphere.mainmenu', 'clouds' )
     end
 
-    menuInfo( '#atmosphere.mainmenu', 'clouds' )
-end
+    hook.Add( 'PageChanged', Plugin.Name, PageInfo )
 
-hook.Add( 'PageChanged', Plugin.Name, updatePageInfo )
+end
 
 -- Discord Connect Managment
 do
@@ -81,7 +96,7 @@ do
         if discord.IsConnected() then return end
         logger:Info( 'Searching for a client...' )
 
-        local code = discord.Init( '1016151516761030717' )
+        local code = discord.Init( clientID )
         if (code == 0) then
             logger:Info( 'Client detected, pending connection...' )
             attempts = 1
@@ -110,7 +125,7 @@ do
 
     hook.Add( 'DiscordLoaded', Plugin.Name, function()
         connect()
-        updatePageInfo()
+        PageInfo()
     end )
 
 end
@@ -127,10 +142,13 @@ hook.Add( 'LoadingStarted', Plugin.Name, function()
     discord.SetState( '#atmosphere.connecting_to_server' )
 end )
 
+local convars = atmosphere.Require( 'convars' )
+local server = atmosphere.Require( 'server' )
+
 hook.Add( 'LoadingFinished', Plugin.Name, function()
     if server.IsConnected() then return end
     discord.Clear()
-    updatePageInfo()
+    PageInfo()
 end )
 
 local loadingStatus = convars.Create( 'discord_loading_status', true, TYPE_BOOL, ' - Displays the connection process in your Discord activity.', true )
@@ -140,9 +158,11 @@ hook.Add( 'LoadingStatusChanged', Plugin.Name, function( status )
     discord.SetTitle( status )
 end )
 
+local gamemode = atmosphere.Require( 'gamemode' )
+
 -- Game Info
 hook.Add( 'ServerDetails', Plugin.Name, function( result )
-    mapInfo( result.Map )
+    MapInfo( result.Map )
 
     if loadingStatus:GetValue() then return end
     discord.SetState( gamemode.GetName( result.Gamemode ) )
@@ -155,11 +175,11 @@ do
     local util = util
 
     hook.Add( 'ClientConnected', Plugin.Name, function()
-        steamInfo()
+        SteamInfo()
 
         discord.SetState( gamemode.GetName( server.GetGamemode() ) )
         discord.SetTitle( server.GetHostName() )
-        mapInfo( server.GetMap() )
+        MapInfo( server.GetMap() )
         discord.StartStopwatch()
 
         local secret = { server.GetAddress() }
@@ -181,6 +201,8 @@ do
         discord.SetJoinSecret( util.Base64Encode( table.concat( secret, ';' ) ) )
         discord.SetPartyID( secret[ 2 ] )
     end )
+
+    local console = atmosphere.Require( 'console' )
 
     hook.Add( 'DiscordJoin', Plugin.Name, function( joinSecret )
         local secret = util.Base64Decode( joinSecret )
@@ -229,5 +251,5 @@ end
 
 hook.Add( 'ClientDisconnected', Plugin.Name, function()
     discord.Clear()
-    updatePageInfo()
+    PageInfo()
 end )
