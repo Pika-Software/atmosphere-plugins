@@ -21,54 +21,27 @@ hook.Add( 'BindPress', Plugin.Name, function( bind, pressed )
             return
         end
 
-        local startX, startY = input.GetCursorPos()
-        local boolean = true
-
+        local x, y = input.GetCursorPos()
         hook.Add( 'Think', Plugin.Name, function()
+            local amplitude = Plugin.Amplitude:GetValue()
             local speed = Plugin.Speed:GetValue()
             local delay = Plugin.Delay:GetValue()
             local cx, cy = input.GetCursorPos()
 
-            local x, y = cx, cy
-
             local mode = Plugin.Mode:GetValue()
             if ( mode == 'infinity' ) then
-                x = x + ( startX + math.cos( CurTime() * speed ) * Plugin.Amplitude:GetValue() - cx ) / delay
-                y = y + ( startY + math.sin( CurTime() * speed * 2 ) * Plugin.Amplitude:GetValue() / 2 - cy ) / delay
+                cx = cx + ( x + math.cos( CurTime() * speed ) * amplitude - cx ) / delay
+                cy = cy + ( y + math.sin( CurTime() * speed * 2 ) * amplitude / 2 - cy ) / delay
             elseif ( mode == 'circle' ) then
-                x = x + ( startX + math.cos( CurTime() * speed ) * Plugin.Amplitude:GetValue() - cx ) / delay
-                y = y + ( startY + math.sin( CurTime() * speed ) * Plugin.Amplitude:GetValue() - cy ) / delay
+                cx = cx + ( x + math.cos( CurTime() * speed ) * amplitude - cx ) / delay
+                cy = cy + ( y + math.sin( CurTime() * speed ) * amplitude - cy ) / delay
             elseif ( mode == 'spiral' ) then
-                local radius = Plugin.Amplitude:GetValue() / 2 + math.sin( CurTime() * speed / 5  ) * Plugin.Amplitude:GetValue() / 2
-                x = startX + (  math.cos( CurTime() * speed ) * radius - cx ) / delay
-                y = startY + ( math.sin( CurTime() * speed ) * radius - cy ) / delay
-            elseif ( mode == 'apple' ) then
-                local radius = Plugin.Amplitude:GetValue() / 2 + math.sin( CurTime() ) * Plugin.Amplitude:GetValue() / 2
-                x = x + ( startX + math.cos( CurTime() * speed ) * radius - cx ) / delay
-                y = y + ( startY + math.sin( CurTime() * speed ) * radius - cy ) / delay
-            elseif ( mode == 'sun' ) then
-                local radius = Plugin.Amplitude:GetValue() / 2 + math.sin( CurTime() * 10 ) * Plugin.Amplitude:GetValue() / 2
-                x = x + ( startX + math.cos( CurTime() * speed ) * radius - cx ) / delay
-                y = y + ( startY + math.sin( CurTime() * speed ) * radius - cy ) / delay
-            elseif ( mode == 'rhombus' ) then
-                x = x + math.Clamp( math.sin( CurTime() ) * Plugin.Amplitude:GetValue(), -1, 1 )
-                y = y + math.Clamp( math.cos( CurTime() ) * Plugin.Amplitude:GetValue(), -1, 1 )
-            elseif ( mode == 'triangle' ) then
-                x = x + math.Clamp( math.sin( CurTime() ) * Plugin.Amplitude:GetValue(), -1, 1 )
-                if math.sin( CurTime() ) >= 0.009 then
-                    boolean = false
-                end
-
-                if math.sin( CurTime() ) <= 0.001 then
-                    boolean = true
-                end
-
-                if boolean then
-                    y = y + math.Clamp( math.cos( CurTime() ) * Plugin.Amplitude:GetValue(), -1, 1 )
-                end
+                local radius = amplitude / 2 + math.sin( CurTime() * speed / 5  ) * amplitude / 2
+                cx = x + (  math.cos( CurTime() * speed ) * radius - cx ) / delay
+                cy = y + ( math.sin( CurTime() * speed ) * radius - cy ) / delay
             end
 
-            input.SetCursorPos( x, y )
+            input.SetCursorPos( cx, cy )
         end )
     end
 end )
